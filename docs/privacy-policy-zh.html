@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FlowChat 隐私政策</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; max-width: 800px; margin: 40px auto; padding: 0 24px; color: #1a1a1a; line-height: 1.8; }
+    h1 { font-size: 2em; margin-bottom: 4px; }
+    h2 { font-size: 1.2em; margin-top: 2em; border-bottom: 1px solid #e5e5e5; padding-bottom: 6px; }
+    p.date { color: #666; margin-top: 0; }
+    table { border-collapse: collapse; width: 100%; margin: 1em 0; }
+    th, td { border: 1px solid #ddd; padding: 8px 12px; text-align: left; }
+    th { background: #f5f5f5; }
+    code { background: #f5f5f5; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+    hr { border: none; border-top: 1px solid #eee; margin: 2em 0; }
+    a { color: #4285f4; }
+  </style>
+</head>
+<body>
+  <h1>FlowChat 隐私政策</h1>
+  <p class="date"><strong>最后更新：2026 年 4 月 4 日</strong></p>
+  <hr>
+
+  <h2>概述</h2>
+  <p>FlowChat（以下简称「本扩展」）是一款 Chrome 浏览器扩展，让用户在单个浏览器标签页中同时与多个 AI 平台对话。本隐私政策说明本扩展访问哪些数据、如何使用，以及哪些数据绝对不会被收集。</p>
+
+  <hr>
+
+  <h2>1. 我们不收集的数据</h2>
+  <p>FlowChat 遵循严格的零收集原则。本扩展<strong>不会</strong>：</p>
+  <ul>
+    <li>收集、存储或传输您的 AI 对话内容或 Prompt 文本。</li>
+    <li>记录您的浏览历史、访问的 URL 或扩展本身以外的标签页活动。</li>
+    <li>收集任何个人身份信息（姓名、邮箱、IP 地址、设备标识符等）。</li>
+    <li>向任何外部服务器、API 或第三方分析服务发送任何数据。</li>
+    <li>使用 Cookie、追踪像素、浏览器指纹或任何形式的用户识别技术。</li>
+    <li>在任何情况下与任何第三方共享数据。</li>
+  </ul>
+
+  <hr>
+
+  <h2>2. 存储在您本地设备上的数据</h2>
+  <p>本扩展仅通过 Chrome 内置的 <code>chrome.storage</code> API 将以下数据<strong>存储在您的本地设备上</strong>。这些数据永远不会离开您的设备。</p>
+
+  <h3>2.1 同步设置（<code>chrome.storage.sync</code>）</h3>
+  <p>随您的 Chrome 配置文件同步（与书签同步机制相同）：</p>
+  <table>
+    <tr><th>键名</th><th>内容</th></tr>
+    <tr><td><code>activePlatforms</code></td><td>您已启用的 AI 平台实例列表</td></tr>
+    <tr><td><code>settings</code></td><td>显示偏好：可见列数、布局模式、输入栏位置、窗口排序</td></tr>
+  </table>
+
+  <h3>2.2 本地设置（<code>chrome.storage.local</code>）</h3>
+  <p>仅存储在当前设备：</p>
+  <table>
+    <tr><th>键名</th><th>内容</th></tr>
+    <tr><td><code>flowchat_selectors</code></td><td>您为各 AI 平台输入框和发送按钮配置的自定义 CSS 选择器</td></tr>
+    <tr><td><code>flowchat_blocked_elements</code></td><td>您选择在 AI 平台上隐藏的 UI 元素的 CSS 选择器</td></tr>
+    <tr><td><code>flowchat_groups</code></td><td>您保存的会话组配置（平台列表及关联 URL）</td></tr>
+  </table>
+  <p>所有本地存储的数据仅包含结构性配置信息，不包含消息文本、对话历史或 AI 生成的回复内容。</p>
+
+  <hr>
+
+  <h2>3. 本扩展如何访问第三方网站</h2>
+  <p>FlowChat 将 AI 平台网站（ChatGPT、Claude、Gemini 等）以 iframe 形式嵌入扩展页面，以便您同时查看。本扩展：</p>
+  <ul>
+    <li><strong>不</strong>拦截、读取、记录或存储您在这些平台上的对话内容。</li>
+    <li><strong>不</strong>修改 AI 回复内容，除非是您主动触发的操作（高亮标注、屏蔽特定 UI 元素）。</li>
+    <li>向 AI 平台 iframe 注入轻量脚本（<code>bridge.js</code>、<code>highlight.js</code>），仅用于实现文字输入自动化和标注功能。</li>
+    <li>对列出的 AI 平台移除特定 HTTP 安全响应头（<code>X-Frame-Options</code>、<code>Content-Security-Policy</code>），以使 iframe 嵌入在技术上成为可能。这是一项客户端修改，仅影响您的浏览器在本扩展内渲染这些页面的方式，不影响您直接访问这些网站时的安全性。</li>
+  </ul>
+
+  <hr>
+
+  <h2>4. 权限及申请原因</h2>
+  <table>
+    <tr><th>权限</th><th>申请原因</th></tr>
+    <tr><td><code>storage</code></td><td>在本地保存您的扩展偏好设置</td></tr>
+    <tr><td><code>scripting</code></td><td>向 AI 平台 iframe 注入输入自动化和标注脚本</td></tr>
+    <tr><td><code>tabs</code></td><td>在扩展主页面和 AI 平台 iframe 之间路由消息</td></tr>
+    <tr><td><code>webNavigation</code></td><td>检测 AI 平台 iframe 加载完成时机以注入脚本</td></tr>
+    <tr><td><code>declarativeNetRequest</code></td><td>移除特定 AI 平台域名上阻止 iframe 嵌入的响应头</td></tr>
+    <tr><td>主机权限（19 个 AI 域名）</td><td>允许向 AI 平台 iframe 注入脚本和传递消息</td></tr>
+  </table>
+  <p>每项权限均仅用于其声明的用途。</p>
+
+  <hr>
+
+  <h2>5. 第三方服务</h2>
+  <p>FlowChat 不集成任何第三方服务、分析平台、广告网络或数据经纪商。您通过本扩展使用的 AI 平台（ChatGPT、Claude 等）均受其各自隐私政策的约束，与本扩展无关，本扩展不代表您向这些平台共享任何数据。</p>
+
+  <hr>
+
+  <h2>6. 未成年人隐私</h2>
+  <p>FlowChat 不故意收集 13 周岁以下儿童的任何信息。本扩展面向成年用户设计。</p>
+
+  <hr>
+
+  <h2>7. 政策变更</h2>
+  <p>如本隐私政策有所更新，本文件顶部的「最后更新」日期将相应修改。重大变更将在扩展的版本更新说明中注明。</p>
+
+  <hr>
+
+  <h2>8. 联系方式</h2>
+  <p>如您对本隐私政策有任何疑问，请通过 <a href="https://github.com/gitTreeYoung/FlowChat">项目 GitHub 仓库</a>提交 Issue，或通过 Chrome Web Store 商店页面联系开发者。</p>
+</body>
+</html>

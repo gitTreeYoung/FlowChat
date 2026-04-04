@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FlowChat Privacy Policy</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 24px; color: #1a1a1a; line-height: 1.7; }
+    h1 { font-size: 2em; margin-bottom: 4px; }
+    h2 { font-size: 1.2em; margin-top: 2em; border-bottom: 1px solid #e5e5e5; padding-bottom: 6px; }
+    p.date { color: #666; margin-top: 0; }
+    table { border-collapse: collapse; width: 100%; margin: 1em 0; }
+    th, td { border: 1px solid #ddd; padding: 8px 12px; text-align: left; }
+    th { background: #f5f5f5; }
+    code { background: #f5f5f5; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+    hr { border: none; border-top: 1px solid #eee; margin: 2em 0; }
+    a { color: #4285f4; }
+  </style>
+</head>
+<body>
+  <h1>FlowChat Privacy Policy</h1>
+  <p class="date"><strong>Last updated: April 4, 2026</strong></p>
+  <hr>
+
+  <h2>Overview</h2>
+  <p>FlowChat ("the Extension") is a Chrome browser extension that enables users to interact with multiple AI platforms simultaneously in a single browser tab. This Privacy Policy explains what data the Extension accesses, how it is used, and what is never collected.</p>
+
+  <hr>
+
+  <h2>1. Data We Do NOT Collect</h2>
+  <p>FlowChat is designed with a strict no-collection principle. The Extension does <strong>not</strong>:</p>
+  <ul>
+    <li>Collect, store, or transmit your AI conversation content or prompts.</li>
+    <li>Record your browsing history, visited URLs, or tab activity outside the Extension itself.</li>
+    <li>Collect any personally identifiable information (name, email, IP address, device identifiers, etc.).</li>
+    <li>Send any data to external servers, APIs, or third-party analytics services.</li>
+    <li>Use cookies, tracking pixels, fingerprinting, or any form of user identification.</li>
+    <li>Share any data with third parties under any circumstances.</li>
+  </ul>
+
+  <hr>
+
+  <h2>2. Data Stored Locally on Your Device</h2>
+  <p>The Extension stores the following data <strong>exclusively on your local device</strong> using Chrome's built-in <code>chrome.storage</code> API. This data never leaves your device.</p>
+
+  <h3>2.1 Synced Settings (<code>chrome.storage.sync</code>)</h3>
+  <p>Stored and synced across your Chrome profile (same as your browser bookmarks):</p>
+  <table>
+    <tr><th>Key</th><th>Contents</th></tr>
+    <tr><td><code>activePlatforms</code></td><td>List of AI platform instance keys you have enabled</td></tr>
+    <tr><td><code>settings</code></td><td>Display preferences: visible column count, layout mode, input bar position, window order</td></tr>
+  </table>
+
+  <h3>2.2 Local Settings (<code>chrome.storage.local</code>)</h3>
+  <p>Stored only on the current device:</p>
+  <table>
+    <tr><th>Key</th><th>Contents</th></tr>
+    <tr><td><code>flowchat_selectors</code></td><td>Custom CSS selectors you have configured for AI platform input boxes and send buttons</td></tr>
+    <tr><td><code>flowchat_blocked_elements</code></td><td>CSS selectors for UI elements you have chosen to hide on AI platforms</td></tr>
+    <tr><td><code>flowchat_groups</code></td><td>Session group configurations you have saved (platform list and associated URLs)</td></tr>
+  </table>
+  <p>All locally stored data contains only structural configuration. It does not include message text, conversation history, or AI-generated responses.</p>
+
+  <hr>
+
+  <h2>3. How the Extension Accesses Third-Party Websites</h2>
+  <p>FlowChat embeds AI platform websites (ChatGPT, Claude, Gemini, etc.) inside iframes within the extension page so you can view them simultaneously. The Extension:</p>
+  <ul>
+    <li>Does <strong>not</strong> intercept, read, log, or store the content of your conversations on these platforms.</li>
+    <li>Does <strong>not</strong> modify the content of AI responses beyond what you explicitly request (highlighting, blocking specific UI elements).</li>
+    <li>Injects lightweight scripts (<code>bridge.js</code>, <code>highlight.js</code>) into the AI platform iframes solely to enable text input automation and the annotation feature.</li>
+    <li>Removes certain HTTP security response headers (<code>X-Frame-Options</code>, <code>Content-Security-Policy</code>) for the listed AI platforms to make iframe embedding technically possible. This is a client-side modification that affects only how your browser renders these pages inside the Extension — it does not affect your security when visiting these sites directly.</li>
+  </ul>
+
+  <hr>
+
+  <h2>4. Permissions and Why They Are Required</h2>
+  <table>
+    <tr><th>Permission</th><th>Reason</th></tr>
+    <tr><td><code>storage</code></td><td>Save your Extension preferences locally</td></tr>
+    <tr><td><code>scripting</code></td><td>Inject input-automation and annotation scripts into AI platform iframes</td></tr>
+    <tr><td><code>tabs</code></td><td>Route messages between the Extension page and AI platform iframes</td></tr>
+    <tr><td><code>webNavigation</code></td><td>Detect when an AI platform iframe finishes loading to inject scripts at the right time</td></tr>
+    <tr><td><code>declarativeNetRequest</code></td><td>Remove iframe-blocking headers on specific AI platform domains so they can be embedded</td></tr>
+    <tr><td>Host permissions (19 AI domains)</td><td>Allow script injection and message passing to AI platform iframes</td></tr>
+  </table>
+  <p>No permission is used beyond its stated purpose.</p>
+
+  <hr>
+
+  <h2>5. Third-Party Services</h2>
+  <p>FlowChat does not integrate with any third-party services, analytics platforms, advertising networks, or data brokers. The AI platforms you interact with through the Extension (ChatGPT, Claude, etc.) are governed by their own respective privacy policies. FlowChat has no relationship with these platforms and does not share data with them on your behalf.</p>
+
+  <hr>
+
+  <h2>6. Children's Privacy</h2>
+  <p>FlowChat does not knowingly collect any information from children under the age of 13. The Extension is intended for general adult use.</p>
+
+  <hr>
+
+  <h2>7. Changes to This Policy</h2>
+  <p>If this Privacy Policy is updated, the "Last updated" date at the top of this document will be revised. Significant changes will be noted in the extension's release notes.</p>
+
+  <hr>
+
+  <h2>8. Contact</h2>
+  <p>If you have questions or concerns about this Privacy Policy, please open an issue at the <a href="https://github.com/gitTreeYoung/FlowChat">project's GitHub repository</a> or contact the developer directly through the Chrome Web Store listing page.</p>
+</body>
+</html>
