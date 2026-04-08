@@ -80,7 +80,16 @@ agent-browser --auto-connect eval "(async function(){
 
 ### 安装扩展
 
-> 正在准备上架 Chrome Web Store，敬请期待。
+**推荐：[Chrome Web Store](https://chromewebstore.google.com/detail/flowchat-ai-%E5%90%8C%E5%B1%8F%E8%81%8A%E5%A4%A9/kiblkgnhaihbfacpollcinnfmjbfohkg)**（自动更新）
+
+无法访问 Chrome Web Store 时：
+
+| 方式 | 下载 | 说明 |
+|------|------|------|
+| CRX | [FlowChat-v1.1.0.crx](https://github.com/gitTreeYoung/FlowChat/releases/download/v1.1.0/FlowChat-v1.1.0.crx) | 开启开发者模式后拖入 `chrome://extensions/` |
+| ZIP | [FlowChat-v1.1.0.zip](https://github.com/gitTreeYoung/FlowChat/releases/download/v1.1.0/FlowChat-v1.1.0.zip) | 解压后点击「加载已解压的扩展程序」选择解压目录 |
+
+> 也可前往 [Releases 页面](https://github.com/gitTreeYoung/FlowChat/releases) 下载历史版本。
 
 ---
 
@@ -148,7 +157,16 @@ Full Skill docs: [flowchat.md](./flowchat.md)
 
 ### Install Extension
 
-> Chrome Web Store listing coming soon.
+**Recommended: [Chrome Web Store](https://chromewebstore.google.com/detail/flowchat-ai-%E5%90%8C%E5%B1%8F%E8%81%8A%E5%A4%A9/kiblkgnhaihbfacpollcinnfmjbfohkg)** (auto-updates)
+
+If you can't access the Chrome Web Store:
+
+| Method | Download | Instructions |
+|--------|----------|--------------|
+| CRX | [FlowChat-v1.1.0.crx](https://github.com/gitTreeYoung/FlowChat/releases/download/v1.1.0/FlowChat-v1.1.0.crx) | Enable Developer Mode, then drag the file into `chrome://extensions/` |
+| ZIP | [FlowChat-v1.1.0.zip](https://github.com/gitTreeYoung/FlowChat/releases/download/v1.1.0/FlowChat-v1.1.0.zip) | Unzip, then click "Load unpacked" and select the folder |
+
+> See [Releases](https://github.com/gitTreeYoung/FlowChat/releases) for all versions.
 
 ---
 
