@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FlowChat</title>
+  <link rel="stylesheet" href="flowchat.css">
+  <link rel="icon" type="image/png" sizes="128x128" href="icons/icon128.png">
+  <link rel="icon" type="image/png" sizes="48x48"  href="icons/icon48.png">
+  <link rel="icon" type="image/png" sizes="32x32"  href="icons/icon32.png">
+  <link rel="icon" type="image/png" sizes="16x16"  href="icons/icon16.png">
+</head>
+<body>
+
+  <!-- ── 聚焦模式状态栏 ── -->
+  <div class="focus-bar" id="focus-bar">
+    <button class="focus-exit" id="btn-focus-exit">
+      <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 12L6 8l4-4"/></svg>
+      <span data-i18n="focus_exit">退出聚焦</span>
+    </button>
+    <span class="focus-title" id="focus-title"></span>
+    <div class="focus-nav">
+      <button class="icon-btn" id="btn-focus-prev" data-i18n-tooltip="focus_prev" data-tooltip="上一个 AI">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 12L6 8l4-4"/></svg>
+      </button>
+      <button class="icon-btn" id="btn-focus-next" data-i18n-tooltip="focus_next" data-tooltip="下一个 AI">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4l4 4-4 4"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- 控制栏 -->
+  <header class="header">
+
+    <!-- Logo + 版本号 + 更新日志 -->
+    <div class="logo-group">
+      <img class="logo-icon" src="icons/icon32.png" alt="FlowChat">
+      <span class="logo">FlowChat</span>
+      <button class="fc-version-btn" id="btn-changelog" aria-label="更新日志">
+        <span class="fc-version">v1.2</span>
+        <span class="fc-version-dot" id="fc-version-dot" hidden></span>
+        <svg class="fc-version-caret" width="8" height="8" viewBox="0 0 8 8" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 3L4 5.5 6.5 3"/></svg>
+      </button>
+      <!-- 更新日志弹窗（内容由 JS 动态渲染） -->
+      <div class="fc-changelog-popup" id="changelog-popup" hidden>
+        <div class="fc-cl-header">
+          <span class="fc-cl-title">更新日志</span>
+        </div>
+        <div class="fc-cl-body" id="fc-cl-body">
+          <!-- 动态填充 -->
+        </div>
+        <div class="fc-cl-footer">
+          <a class="fc-cl-detail-btn" href="changelog.html" target="_blank">查看完整更新日志</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- 居中输入区 -->
+    <div class="input-center">
+      <div class="input-inner">
+        <div class="input-wrap">
+          <textarea id="message-input" data-i18n-placeholder="input_placeholder" placeholder="输入消息，Enter 发送，Shift+Enter 换行…" rows="1"></textarea>
+        </div>
+        <div class="send-wrap">
+          <button class="send-btn" id="btn-send" data-i18n-tooltip="send_tooltip" data-tooltip="发送 (Ctrl+Enter)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
+            </svg>
+          </button>
+          <span class="queue-badge" id="queue-badge"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 右侧工具按钮 -->
+    <div class="header-right">
+      <button class="icon-btn focus-exit-top" id="btn-focus-exit-top" data-i18n-tooltip="focus_exit" data-tooltip="退出聚焦" style="display:none">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 12L6 8l4-4"/><path d="M14 8H6"/></svg>
+        <span class="ibtn-label" data-i18n="focus_exit">退出聚焦</span>
+      </button>
+      <div class="header-tool-group">
+        <button class="icon-btn" id="btn-groups" data-i18n-tooltip="groups_tooltip" data-tooltip="布局">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M2 5a1 1 0 0 1 1-1h3l1.5 2H13a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V5z"/>
+          </svg>
+          <span class="ibtn-label" data-i18n="hdr_label_groups">布局</span>
+        </button>
+        <button class="icon-btn" id="btn-history" data-i18n-tooltip="history_tooltip" data-tooltip="会话历史">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 4h10M3 8h10M3 12h7"/>
+            <path d="M12 11l1.5 1.5L15 11"/>
+          </svg>
+          <span class="ibtn-label" data-i18n="hdr_label_history">会话</span>
+        </button>
+      </div>
+      <div class="header-tool-group">
+        <button class="icon-btn" id="btn-new-chat-all" data-i18n-tooltip="new_chat_all_tooltip" data-tooltip="全部新建对话">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M2 3c0-.6.4-1 1-1h10c.6 0 1 .4 1 1v7c0 .6-.4 1-1 1H9L7 13 5 11H3c-.6 0-1-.4-1-1V3z"/>
+            <path d="M8 5v4M6 7h4" stroke-width="1.5"/>
+          </svg>
+          <span class="ibtn-label" data-i18n="hdr_label_newchat">新建</span>
+        </button>
+        <button class="icon-btn" id="btn-toggle-panel" data-i18n-tooltip="hl_panel_tooltip" data-tooltip="高亮面板">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M2 4h12M2 8h12M2 12h10"/>
+            <rect x="2" y="6" width="7" height="4" rx="1" fill="currentColor" opacity="0.15" stroke="none"/>
+          </svg>
+          <span class="ibtn-label" data-i18n="hdr_label_panel">高亮</span>
+        </button>
+      </div>
+      <div class="header-tool-group">
+        <button class="icon-btn" id="btn-synthesis-all" data-i18n-tooltip="synthesis_all_tooltip" data-tooltip="AI总结回复">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M1 4h3M1 8h3M1 12h3M11 8h4"/>
+            <path d="M4 4l7 4M4 12l7-4M4 8h7"/>
+          </svg>
+          <span class="ibtn-label" data-i18n="hdr_label_synthesis">总结</span>
+        </button>
+        <button class="icon-btn" id="btn-export-all" data-i18n-tooltip="btn_export_all" data-tooltip="导出全部回复">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M2 3h6M2 6h5M2 9h6"/>
+            <path d="M12 2v10M9 9l3 3 3-3"/>
+            <path d="M2 14h12"/>
+          </svg>
+          <span class="ibtn-label" data-i18n="hdr_label_export">导出</span>
+        </button>
+      </div>
+      <!-- 翻页导航（可被 navBtnEnabled 设置隐藏）-->
+      <div id="nav-btn-group">
+        <button class="icon-btn" id="btn-nav-prev" data-i18n-tooltip="nav_prev_tooltip" data-tooltip="上一组" disabled>
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 12L6 8l4-4"/></svg>
+        </button>
+        <button class="icon-btn" id="btn-nav-next" data-i18n-tooltip="nav_next_tooltip" data-tooltip="下一组" disabled>
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4l4 4-4 4"/></svg>
+        </button>
+      </div>
+      <div class="header-tool-group">
+        <button class="icon-btn icon-btn-primary" id="btn-add-platform" data-i18n-tooltip="add_platform_tooltip" data-tooltip="添加 AI 渠道">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+            <path d="M8 2v12M2 8h12"/>
+          </svg>
+          <span class="ibtn-label" data-i18n="hdr_label_add">添加</span>
+        </button>
+        <button class="icon-btn" id="btn-settings" data-i18n-tooltip="settings_tooltip" data-tooltip="设置">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+          </svg>
+          <span class="ibtn-label" data-i18n="hdr_label_settings">设置</span>
+        </button>
+      </div>
+      <!-- 开发者模式（仅在 agentMode 开启时通过设置面板入口显示，顶栏默认隐藏） -->
+      <button class="icon-btn" id="btn-dev-mode" data-i18n-tooltip="dev_mode_tooltip" data-tooltip="开发者面板" style="display:none">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 4l-3 4 3 4M11 4l3 4-3 4M9 3l-2 10"/>
+        </svg>
+      </button>
+      <div class="header-tool-group side-header-more-wrap">
+        <button class="icon-btn" id="btn-side-header-more" data-i18n-tooltip="side_header_more" data-tooltip="更多">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" stroke="none"><circle cx="4" cy="8" r="1.3"/><circle cx="8" cy="8" r="1.3"/><circle cx="12" cy="8" r="1.3"/></svg>
+        </button>
+        <div class="side-header-menu" id="side-header-menu">
+          <button data-side-action="groups" data-i18n="hdr_label_groups">布局</button>
+          <button data-side-action="history" data-i18n="hdr_label_history">会话</button>
+          <button data-side-action="newchat" data-i18n="hdr_label_newchat">新建</button>
+          <button data-side-action="panel" data-i18n="hdr_label_panel">高亮</button>
+          <button data-side-action="synthesis" data-i18n="hdr_label_synthesis">总结</button>
+          <button data-side-action="export" data-i18n="hdr_label_export">导出</button>
+          <button data-side-action="add" data-i18n="hdr_label_add">添加</button>
+          <button data-side-action="settings" data-i18n="hdr_label_settings">设置</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- 消息队列抽屉 -->
+  <div class="queue-drawer" id="queue-drawer">
+    <div class="queue-hd">
+      <span class="queue-count" id="queue-count">0 条待发送</span>
+      <button class="queue-clear-all" id="btn-queue-clear-all" data-i18n="queue_clear_all">全部取消</button>
+    </div>
+    <div class="queue-list" id="queue-list"></div>
+  </div>
+
+  <!-- iframe 主网格 -->
+  <main class="grid-container" id="grid-container"></main>
+
+  <!-- 开发者模式面板 -->
+  <aside class="dev-panel" id="dev-panel">
+    <div class="dev-panel-header">
+      <span class="dev-panel-title" data-i18n="dev_panel_title">开发者模式</span>
+      <button class="icon-btn" id="btn-dev-close">
+        <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 3l10 10M13 3L3 13"/></svg>
+      </button>
+    </div>
+    <div class="dev-tabs">
+      <button class="dev-tab active" data-tab="status" data-i18n="dev_tab_status">平台状态</button>
+      <button class="dev-tab" data-tab="api" data-i18n="dev_tab_api">API 文档</button>
+    </div>
+    <div class="dev-panel-body">
+      <!-- 状态页 -->
+      <div class="dev-tab-pane active" id="dev-tab-status">
+        <div class="dev-status-list" id="dev-status-list">
+          <div class="dev-empty" data-i18n="dev_empty">打开面板后自动刷新…</div>
+        </div>
+        <div class="dev-hint">
+          <code>window.FlowChatAPI</code> 已暴露在页面全局，<br>
+          可通过 DevTools Console 或 MCP evaluate_script 调用。
+        </div>
+      </div>
+      <!-- API 文档页 -->
+      <div class="dev-tab-pane" id="dev-tab-api">
+        <div class="dev-api-section">
+          <div class="dev-api-title" data-i18n="dev_api_ask">发送并等待所有回复</div>
+          <pre class="dev-code">const r = await window.FlowChatAPI.ask(
+  "你的问题"
+);
+// r.responses  — { platform: { text, ts } }
+// r.duration   — 总耗时(ms)</pre>
+        </div>
+        <div class="dev-api-section">
+          <div class="dev-api-title" data-i18n="dev_api_send">仅发送（异步，不等待）</div>
+          <pre class="dev-code">await window.FlowChatAPI.sendMessage(
+  "你的问题"
+);</pre>
+        </div>
+        <div class="dev-api-section">
+          <div class="dev-api-title" data-i18n="dev_api_specific">指定平台发送</div>
+          <pre class="dev-code">const r = await window.FlowChatAPI.ask(
+  "你的问题",
+  { platforms: ["claude", "chatgpt"],
+    timeout: 60000 }
+);</pre>
+        </div>
+        <div class="dev-api-section">
+          <div class="dev-api-title" data-i18n="dev_api_get">查看当前回复</div>
+          <pre class="dev-code">window.FlowChatAPI.getResponses();
+window.FlowChatAPI.getStatus();</pre>
+        </div>
+        <div class="dev-api-section">
+          <div class="dev-api-title" data-i18n="dev_api_wait">等待生成完成</div>
+          <pre class="dev-code">const r = await window.FlowChatAPI
+  .waitForCompletion({ timeout: 60000 });</pre>
+        </div>
+        <div class="dev-api-section">
+          <div class="dev-api-title" data-i18n="dev_api_history">获取对话历史</div>
+          <pre class="dev-code">window.FlowChatAPI.getConversationLog();</pre>
+        </div>
+        <div class="dev-hint">
+          <span data-i18n="dev_mcp_hint">通过 Claude Code MCP 工具调用：</span><br>
+          <code>mcp__chrome-devtools__evaluate_script</code>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- 高亮面板 -->
+  <aside class="hl-panel" id="hl-panel">
+    <div class="hl-panel-header">
+      <span class="hl-panel-title" data-i18n="hl_panel_title">高亮标注</span>
+      <div class="hl-panel-actions">
+        <button class="icon-btn" id="btn-clear-highlights" data-i18n-tooltip="hl_clear_tooltip" data-tooltip="清除全部">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="8" r="6"/><path d="M5.5 5.5l5 5M10.5 5.5l-5 5"/></svg>
+        </button>
+        <button class="icon-btn" id="btn-close-panel" data-i18n-tooltip="hl_close_tooltip" data-tooltip="关闭">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 3l10 10M13 3L3 13"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="hl-groups" id="hl-groups">
+      <div class="hl-empty" id="hl-empty">
+        <div class="hl-empty-icon">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" opacity="0.35"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        </div>
+        <div data-i18n="hl_empty_line1">选中 AI 回复中的文字</div>
+        <div data-i18n="hl_empty_line2">点击标签完成标注</div>
+        <div class="hl-empty-hint" data-i18n="hl_empty_hint">快捷键：1 采纳 · 2 参考 · 3 拒绝 · 4 批注</div>
+      </div>
+    </div>
+    <div class="hl-panel-footer">
+      <button class="hl-btn" id="btn-export-highlights">
+        <svg class="hl-btn-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 13h12M10 2l3 3-7 7H3v-3l7-7z"/></svg>
+        <span data-i18n="btn_export_hl">导出高亮</span>
+      </button>
+      <div class="synthesis-row">
+        <button class="hl-btn primary" id="btn-synthesis">
+          <svg class="hl-btn-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4h4M2 12h4M10 8h4M6 4l2 4-2 4"/></svg>
+          <span id="synthesis-btn-label" data-i18n="btn_synthesis_label">融合生成</span>
+        </button>
+        <button class="synthesis-settings-btn" id="btn-synthesis-settings" data-i18n-tooltip="synthesis_settings_tooltip" data-tooltip="融合设置">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- 融合生成设置浮窗 -->
+  <div class="fc-popover fc-popover-wide" id="popover-synthesis" style="display:none">
+    <div class="fc-popover-header">
+      <span class="fc-popover-title" data-i18n="synthesis_settings_title">融合生成设置</span>
+      <button class="icon-btn" id="popover-synthesis-close">
+        <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 3l10 10M13 3L3 13"/></svg>
+      </button>
+    </div>
+    <div class="fc-popover-body synthesis-settings-body">
+      <div class="synth-section">
+        <div class="synth-label"><span data-i18n="synth_target_label">融合目标 AI</span> <span class="synth-label-hint" data-i18n="synth_target_hint">（将融合 Prompt 发送给该 AI）</span></div>
+        <div class="synthesis-target-list" id="synthesis-target-list"></div>
+      </div>
+      <div class="synth-section">
+        <div class="synth-label"><span data-i18n="synth_all_label">全量模式 Prompt</span> <span class="synth-label-hint" data-i18n="synth_all_hint">（无高亮标注时使用）</span></div>
+        <div class="prompt-vars">变量：<code>{user_question}</code> <code>{all_replies}</code> <code>{count}</code></div>
+        <textarea id="synthesis-prompt-all" class="prompt-editor" rows="7" spellcheck="false"></textarea>
+      </div>
+      <div class="synth-section">
+        <div class="synth-label"><span data-i18n="synth_hl_label">高亮模式 Prompt</span> <span class="synth-label-hint" data-i18n="synth_hl_hint">（有高亮标注时使用）</span></div>
+        <div class="prompt-vars">变量：<code>{user_question}</code> <code>{adopt}</code> <code>{ref}</code> <code>{reject}</code> <code>{note}</code></div>
+        <textarea id="synthesis-prompt-hl" class="prompt-editor" rows="9" spellcheck="false"></textarea>
+      </div>
+      <div class="synth-section">
+        <label class="synth-toggle-row">
+          <input type="checkbox" id="setting-synthesis-auto-focus-split">
+          <span data-i18n="synth_auto_focus_split">融合后自动全屏并分列阅读</span>
+        </label>
+      </div>
+      <button class="synth-save-btn" id="btn-synthesis-settings-save" data-i18n="synth_save">保存设置</button>
+    </div>
+  </div>
+
+  <!-- 全量融合快捷弹窗 -->
+  <div class="fc-popover" id="popover-synthesis-all" style="display:none">
+    <div class="fc-popover-header">
+      <span class="fc-popover-title" data-i18n="synthesis_all_popup_title">全量融合生成</span>
+      <button class="icon-btn" id="popover-synthesis-all-close">
+        <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 3l10 10M13 3L3 13"/></svg>
+      </button>
+    </div>
+    <div class="fc-popover-body synthesis-all-body">
+      <div class="synth-section">
+        <div class="synth-label" data-i18n="synth_target_label">融合目标 AI</div>
+        <div class="synthesis-target-list" id="synthesis-all-target-list"></div>
+      </div>
+      <button class="synth-save-btn" id="btn-synthesis-all-go" data-i18n="synthesis_all_go">开始融合</button>
+    </div>
+  </div>
+
+  <!-- 添加 AI & 窗口排序（合并面板） -->
+  <div class="fc-popover popover-add-wide" id="popover-add" style="display:none">
+    <div class="fc-popover-header">
+      <span class="fc-popover-title" data-i18n="add_ai_title">AI 渠道管理</span>
+      <button class="icon-btn" id="popover-add-close">
+        <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 3l10 10M13 3L3 13"/></svg>
+      </button>
+    </div>
+    <div class="add-section-label">
+      <span data-i18n="add_drag_hint">拖拽调整顺序</span>
+      <button class="add-reset-btn" id="btn-reset-order" data-i18n-tooltip="reset_order_tooltip" data-tooltip="重置默认顺序">
+        <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 8a6.5 6.5 0 1 0 1.4-4M1.5 2v3.5h3.5"/></svg>
+      </button>
+    </div>
+    <div class="platform-manage-list" id="platform-manage-list"></div>
+    <!-- 自定义渠道内嵌表单（切换视图） -->
+    <div id="cpf-view" style="display:none">
+      <button id="cpf-back-btn" class="cpf-back-btn">
+        <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3L4 8l6 5"/></svg>
+        <span data-i18n="custom_platform_cancel">返回</span>
+      </button>
+      <div class="cpf-body">
+        <div class="cpf-field">
+          <label class="cpf-label" data-i18n="custom_platform_name_label">名称</label>
+          <input id="cpf-name" class="cpf-input" type="text" maxlength="30"
+                 data-i18n-placeholder="custom_platform_name_placeholder">
+        </div>
+        <div class="cpf-field">
+          <label class="cpf-label" data-i18n="custom_platform_url_label">URL</label>
+          <input id="cpf-url" class="cpf-input" type="url"
+                 data-i18n-placeholder="custom_platform_url_placeholder">
+        </div>
+        <div id="cpf-error" class="cpf-error"></div>
+      </div>
+      <div class="cpf-footer">
+        <button id="cpf-confirm" class="cpf-confirm-btn" data-i18n="custom_platform_confirm">添加</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 设置浮窗 -->
+  <div class="fc-popover fc-popover-wide" id="popover-settings" style="display:none">
+    <div class="fc-popover-header">
+      <span class="fc-popover-title" data-i18n="settings_panel_title">设置</span>
+      <button class="icon-btn" id="popover-settings-close">
+        <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 3l10 10M13 3L3 13"/></svg>
+      </button>
+    </div>
+    <div class="fc-popover-body">
+      <div class="settings-section">
+        <div class="settings-label" data-i18n="settings_col_label">每屏显示列数</div>
+        <div class="col-presets">
+          <button class="preset-btn" data-set-cols="1">1</button>
+          <button class="preset-btn active" data-set-cols="2">2</button>
+          <button class="preset-btn" data-set-cols="3">3</button>
+          <button class="preset-btn" data-set-cols="4">4</button>
+          <button class="preset-btn" data-set-cols="5">5</button>
+        </div>
+      </div>
+      <div class="settings-section">
+        <div class="settings-label" data-i18n="settings_display_label">超出屏幕时的展现方式</div>
+        <div class="mode-options">
+          <label class="mode-option">
+            <input type="radio" name="displayMode" value="carousel" checked>
+            <div class="mode-info">
+              <span class="mode-name" data-i18n="mode_carousel_name">左右滑动（推荐）</span>
+              <span class="mode-desc" data-i18n="mode_carousel_desc">固定显示列数，点击箭头切换</span>
+            </div>
+          </label>
+          <label class="mode-option">
+            <input type="radio" name="displayMode" value="grid">
+            <div class="mode-info">
+              <span class="mode-name" data-i18n="mode_grid_name">上下分屏</span>
+              <span class="mode-desc" data-i18n="mode_grid_desc">所有 AI 同时可见</span>
+            </div>
+          </label>
+        </div>
+      </div>
+      <div class="settings-section">
+        <div class="settings-label" data-i18n="settings_nav_label">翻页方式</div>
+        <div class="toggle-options">
+          <label class="toggle-row">
+            <span class="toggle-label">
+              <span class="toggle-name" data-i18n="nav_btn_name">翻页按钮</span>
+              <span class="toggle-desc" data-i18n="nav_btn_desc">顶部栏左右箭头按钮（默认开启）</span>
+            </span>
+            <input type="checkbox" class="toggle-checkbox" id="setting-nav-btn" checked>
+          </label>
+          <label class="toggle-row">
+            <span class="toggle-label">
+              <span class="toggle-name" data-i18n="swipe_name">拖拽滑动</span>
+              <span class="toggle-desc" data-i18n="swipe_desc">鼠标按住拖拽列标题栏切换（两指轻扫始终有效）</span>
+            </span>
+            <input type="checkbox" class="toggle-checkbox" id="setting-swipe">
+          </label>
+          <label class="toggle-row toggle-sub" id="toggle-snap-row" style="display:none">
+            <span class="toggle-label">
+              <span class="toggle-name" data-i18n="snap_name">磁吸对齐</span>
+              <span class="toggle-desc" data-i18n="snap_desc">释放后自动对齐完整页面；关闭则停在任意位置</span>
+            </span>
+            <input type="checkbox" class="toggle-checkbox" id="setting-swipe-snap" checked>
+          </label>
+        </div>
+      </div>
+      <div class="settings-section">
+        <div class="settings-label" data-i18n="settings_bar_label">控制栏位置</div>
+        <div class="mode-options">
+          <label class="mode-option">
+            <input type="radio" name="barPosition" value="top" checked>
+            <div class="mode-info">
+              <span class="mode-name" data-i18n="bar_top_name">顶部（默认）</span>
+              <span class="mode-desc" data-i18n="bar_top_desc">Logo、输入框、按钮在屏幕上方</span>
+            </div>
+          </label>
+          <label class="mode-option">
+            <input type="radio" name="barPosition" value="bottom">
+            <div class="mode-info">
+              <span class="mode-name" data-i18n="bar_bottom_name">底部</span>
+              <span class="mode-desc" data-i18n="bar_bottom_desc">整个控制栏移至屏幕下方</span>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <div class="settings-label" data-i18n="settings_ui_label">界面显示</div>
+        <div class="toggle-options">
+          <label class="toggle-row">
+            <span class="toggle-label">
+              <span class="toggle-name" data-i18n="btn_labels_name">显示按钮名称</span>
+              <span class="toggle-desc" data-i18n="btn_labels_desc">悬停时在列操作按钮旁显示名称，对新手更友好</span>
+            </span>
+            <input type="checkbox" class="toggle-checkbox" id="setting-btn-labels">
+          </label>
+          <label class="toggle-row">
+            <span class="toggle-label">
+              <span class="toggle-name" data-i18n="highlight_auto_panel_name">高亮后自动弹出侧边列表</span>
+              <span class="toggle-desc" data-i18n="highlight_auto_panel_desc">关闭后，高亮仍会记录，但列表只在手动打开时显示</span>
+            </span>
+            <input type="checkbox" class="toggle-checkbox" id="setting-highlight-panel-auto-open" checked>
+          </label>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <div class="settings-label" data-i18n="settings_agent_label">编程智能体集成</div>
+        <div class="toggle-options">
+          <label class="toggle-row">
+            <span class="toggle-label">
+              <span class="toggle-name" data-i18n="agent_name">连接 Claude Code</span>
+              <span class="toggle-desc">开启后暴露 <code style="font-size:11px;background:var(--bg2);padding:1px 4px;border-radius:4px">window.FlowChatAPI</code>，支持通过 MCP / DevTools 批量调用所有 AI 并自动获取回复</span>
+            </span>
+            <input type="checkbox" class="toggle-checkbox" id="setting-agent-mode">
+          </label>
+        </div>
+        <!-- 开启后展示的开发者专属区域 -->
+        <div class="dev-agent-inline" id="dev-agent-inline">
+          <div class="dev-agent-inline-row">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6"/><path d="M8 5v3.5M8 11h.01"/></svg>
+            <span><code>window.FlowChatAPI</code> 已挂载，可在 Claude Code 或 DevTools Console 中直接调用</span>
+          </div>
+          <div class="dev-agent-inline-actions">
+            <button class="dev-agent-btn" id="btn-open-dev-panel-settings" data-i18n="btn_open_dev_panel_settings">开发者面板</button>
+            <span class="dev-agent-status" id="dev-agent-status-text"></span>
+          </div>
+          <div class="dev-agent-skill-tip">
+            <span data-i18n="dev_skill_tip">在 Claude Code 中使用 Skill 自动调用所有 AI：</span>
+            <a class="dev-agent-skill-link" href="https://github.com/gitTreeYoung/FlowChat" target="_blank">github.com/gitTreeYoung/FlowChat</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <button class="preset-btn" id="btn-open-selectors" data-i18n="btn_configure_selectors" style="width:100%;text-align:center">配置各平台的输入框 / 发送按钮 / 完成检测</button>
+      </div>
+      <div class="settings-section">
+        <div class="settings-label" data-i18n="settings_backup_label">配置备份</div>
+        <div class="config-backup-actions">
+          <button class="preset-btn config-backup-btn" id="btn-export-config" data-i18n="btn_export_config">导出配置</button>
+          <button class="preset-btn config-backup-btn" id="btn-import-config" data-i18n="btn_import_config">导入配置</button>
+          <input type="file" id="config-import-file" accept="application/json,.json" hidden>
+        </div>
+        <div class="settings-help" data-i18n="settings_backup_desc">导出布局、会话历史、选择器、屏蔽规则和总结设置，用于迁移或同步测试版 / 正式版。</div>
+      </div>
+      <div class="settings-scroll-hint"></div>
+    </div>
+  </div>
+
+  <!-- 选择器配置面板（可拖拽） -->
+  <div class="sel-panel" id="sel-panel" style="display:none">
+    <div class="sel-panel-header" id="sel-panel-drag">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity="0.4"><path d="M4 6h8M4 10h8"/></svg>
+      <span class="sel-panel-title" data-i18n="sel_panel_title">选择器配置</span>
+      <button class="icon-btn" id="sel-panel-close">
+        <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 3l10 10M13 3L3 13"/></svg>
+      </button>
+    </div>
+    <div class="sel-panel-body" id="sel-cfg-list"></div>
+  </div>
+
+  <!-- 会话组浮窗 -->
+  <div class="fc-popover fc-popover-wide" id="popover-groups" style="display:none">
+    <div class="fc-popover-header">
+      <span class="fc-popover-title" data-i18n="groups_title">布局</span>
+      <button class="icon-btn" id="popover-groups-close">
+        <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 3l10 10M13 3L3 13"/></svg>
+      </button>
+    </div>
+    <div class="fc-popover-body">
+      <div class="groups-save-row layouts-save-row">
+        <input type="text" id="layout-name-input" class="group-name-input" data-i18n-placeholder="layout_name_placeholder" placeholder="为布局起个名字…" maxlength="40">
+        <button class="groups-save-btn secondary" id="btn-new-layout" data-i18n="btn_new_layout">新建布局</button>
+        <button class="groups-save-btn" id="btn-save-layout" data-i18n="btn_save_layout">保存当前</button>
+      </div>
+      <div class="layouts-list" id="layouts-list">
+        <div class="hl-empty">
+          <div data-i18n="layouts_empty">暂无保存的布局</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 会话历史浮窗 -->
+  <div class="fc-popover fc-popover-wide" id="popover-history" style="display:none">
+    <div class="fc-popover-header">
+      <span class="fc-popover-title" data-i18n="history_title">会话历史</span>
+      <button class="icon-btn" id="popover-history-close">
+        <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 3l10 10M13 3L3 13"/></svg>
+      </button>
+    </div>
+    <div class="fc-popover-body">
+      <div class="groups-save-row">
+        <input type="text" id="group-name-input" class="group-name-input" data-i18n-placeholder="group_name_placeholder" placeholder="为当前会话起个名字…" maxlength="40">
+        <button class="groups-save-btn" id="btn-save-group" data-i18n="btn_save_group">保存</button>
+      </div>
+      <div class="groups-auto-row">
+        <label class="groups-auto-label">
+          <input type="checkbox" id="group-auto-save" checked>
+          <span data-i18n="group_auto_save">新建对话时自动保存</span>
+        </label>
+      </div>
+      <div class="groups-list" id="groups-list">
+        <div class="hl-empty">
+          <div data-i18n="groups_empty">暂无保存的会话组</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <script src="flowchat.js"></script>
+  <!-- FlowVibe SDK: 业务链路 trace 采集（默认关闭，?flowvibe=1 或 localStorage.flowvibe=1 时启用） -->
+  <script src="flowvibe-sdk.js"></script>
+  <script src="flowvibe-init.js"></script>
+</body>
+</html>

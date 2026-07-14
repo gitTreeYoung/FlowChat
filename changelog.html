@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FlowChat 更新日志</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+      background: #0f1117;
+      color: #e2e8f0;
+      min-height: 100vh;
+      padding: 48px 24px 80px;
+    }
+
+    .page-wrap {
+      max-width: 720px;
+      margin: 0 auto;
+    }
+
+    /* 顶部 Logo 区 */
+    .page-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 48px;
+    }
+    .page-header img {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+    }
+    .page-header h1 {
+      font-size: 22px;
+      font-weight: 700;
+      color: #f1f5f9;
+      letter-spacing: -0.3px;
+    }
+    .page-header .sub {
+      font-size: 13px;
+      color: #64748b;
+      margin-top: 2px;
+    }
+
+    /* 版本块 */
+    .version-block {
+      position: relative;
+      padding-left: 28px;
+      margin-bottom: 40px;
+    }
+    .version-block::before {
+      content: '';
+      position: absolute;
+      left: 7px;
+      top: 28px;
+      bottom: -40px;
+      width: 2px;
+      background: #1e293b;
+    }
+    .version-block:last-child::before { display: none; }
+
+    .version-dot {
+      position: absolute;
+      left: 0;
+      top: 4px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #334155;
+      border: 2px solid #475569;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .version-block.latest .version-dot {
+      background: #6366f1;
+      border-color: #818cf8;
+      box-shadow: 0 0 0 4px rgba(99,102,241,.15);
+    }
+
+    .version-head {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .version-tag {
+      font-size: 16px;
+      font-weight: 700;
+      color: #f1f5f9;
+    }
+    .version-badge {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 20px;
+      background: #6366f1;
+      color: #fff;
+    }
+    .version-badge.new { background: #6366f1; }
+    .version-badge.stable { background: #059669; }
+    .version-date {
+      font-size: 12px;
+      color: #64748b;
+      margin-left: auto;
+    }
+
+    /* 分类 */
+    .change-group { margin-bottom: 12px; }
+    .change-group-title {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: #64748b;
+      margin-bottom: 6px;
+    }
+    .change-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .change-list li {
+      display: flex;
+      gap: 8px;
+      font-size: 14px;
+      color: #cbd5e1;
+      line-height: 1.55;
+    }
+    .change-list li::before {
+      content: '·';
+      color: #475569;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    /* 标签 chip */
+    .chip {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 600;
+      padding: 1px 6px;
+      border-radius: 4px;
+      vertical-align: middle;
+      margin-right: 4px;
+      flex-shrink: 0;
+    }
+    .chip-feat   { background: rgba(99,102,241,.2); color: #a5b4fc; }
+    .chip-fix    { background: rgba(239,68,68,.18);  color: #fca5a5; }
+    .chip-ui     { background: rgba(20,184,166,.18); color: #5eead4; }
+    .chip-perf   { background: rgba(245,158,11,.18); color: #fcd34d; }
+
+    /* 回到主页 */
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: #64748b;
+      text-decoration: none;
+      margin-bottom: 40px;
+      transition: color .15s;
+    }
+    .back-link:hover { color: #94a3b8; }
+    .back-link svg { width: 14px; height: 14px; }
+  </style>
+</head>
+<body>
+<div class="page-wrap">
+
+  <div class="page-header">
+    <img src="icons/icon128.png" alt="FlowChat Logo">
+    <div>
+      <h1>FlowChat 更新日志</h1>
+      <div class="sub">多 AI 同屏对话 · Chrome 扩展</div>
+    </div>
+  </div>
+
+  <!-- v1.2 -->
+  <div class="version-block latest">
+    <div class="version-dot"></div>
+    <div class="version-head">
+      <span class="version-tag">v1.2</span>
+      <span class="version-badge new">最新</span>
+      <span class="version-date">2026-07</span>
+    </div>
+
+    <div class="change-group">
+      <div class="change-group-title">新功能</div>
+      <ul class="change-list">
+        <li><span class="chip chip-feat">Feat</span>布局分组：可保存多套独立 AI 工作台，例如 10 AI 发散、5 AI 常规、2 AI 精准模式</li>
+        <li><span class="chip chip-feat">Feat</span>布局与会话历史拆分为独立入口，布局管理和历史恢复互不干扰</li>
+        <li><span class="chip chip-feat">Feat</span>布局会独立保存平台组合、实例顺序、每屏列数、显示模式和控制栏位置</li>
+        <li><span class="chip chip-feat">Feat</span>选择器配置支持逐项实测，可真实写入测试内容并触发发送</li>
+        <li><span class="chip chip-feat">Feat</span>发送链路新增 trace 日志，覆盖 tab、frame、选择器、输入写入和发送按钮点击</li>
+      </ul>
+    </div>
+
+    <div class="change-group">
+      <div class="change-group-title">交互优化</div>
+      <ul class="change-list">
+        <li><span class="chip chip-ui">UI</span>新建布局后列表立即反馈，并防止重复点击导致重复创建</li>
+        <li><span class="chip chip-ui">UI</span>移除当前布局的重复状态按钮，保留单一「当前」标签</li>
+        <li><span class="chip chip-ui">UI</span>优化顶部布局 / 会话历史按钮的图标与文字对齐</li>
+        <li><span class="chip chip-fix">Fix</span>修复布局切换时目标布局被当前布局覆盖，导致 3 AI / 5 AI 互切不生效的问题</li>
+        <li><span class="chip chip-fix">Fix</span>修复 Kimi 新域名 www.kimi.com 缺少访问权限导致无法注入的问题</li>
+        <li><span class="chip chip-fix">Fix</span>修复 Gemini 误选工具 iframe、选中外层容器后无法写入真实编辑器的问题</li>
+        <li><span class="chip chip-fix">Fix</span>修复 Kimi Lexical 编辑器在顶部输入框发送时内容被输入两遍的问题</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- v1.1 -->
+  <div class="version-block">
+    <div class="version-dot"></div>
+    <div class="version-head">
+      <span class="version-tag">v1.1</span>
+      <span class="version-date">2026-04</span>
+    </div>
+
+    <div class="change-group">
+      <div class="change-group-title">新功能</div>
+      <ul class="change-list">
+        <li><span class="chip chip-feat">Feat</span>全平台开放 FlowRead 分列阅读，长回复可多列排版、翻页阅读</li>
+        <li><span class="chip chip-feat">Feat</span>融合生成入口升级：支持全量回复总结和高亮内容总结</li>
+        <li><span class="chip chip-feat">Feat</span>融合目标可指定任意已启用 AI，并自动新建独立对话承接融合结果</li>
+        <li><span class="chip chip-feat">Feat</span>自定义平台入口：支持用户添加未内置的 AI 网页渠道</li>
+      </ul>
+    </div>
+
+    <div class="change-group">
+      <div class="change-group-title">优化</div>
+      <ul class="change-list">
+        <li><span class="chip chip-perf">Perf</span>AI 流式输出监听增加节流和文本缓存，降低长回复时的页面卡顿</li>
+        <li><span class="chip chip-ui">UI</span>聚焦模式补齐列操作按钮，聚焦后仍可刷新、外链、Picker、屏蔽元素</li>
+        <li><span class="chip chip-fix">Fix</span>修复分列阅读退出、切换聚焦平台、frameId 丢失等边界问题</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- v1.0 -->
+  <div class="version-block">
+    <div class="version-dot"></div>
+    <div class="version-head">
+      <span class="version-tag">v1.0</span>
+      <span class="version-badge stable">稳定</span>
+      <span class="version-date">2026-04</span>
+    </div>
+
+    <div class="change-group">
+      <div class="change-group-title">发布</div>
+      <ul class="change-list">
+        <li><span class="chip chip-feat">Feat</span>正式发布 Chrome / Edge 扩展版本，主界面支持 19 个 AI 平台同屏工作</li>
+        <li><span class="chip chip-feat">Feat</span>国际化支持：中英文界面自动匹配浏览器和系统语言</li>
+        <li><span class="chip chip-feat">Feat</span>导出功能：支持导出全部回复和高亮内容为 Markdown</li>
+        <li><span class="chip chip-feat">Feat</span>会话历史：保存 / 恢复多 AI 窗口组合和实际对话 URL</li>
+      </ul>
+    </div>
+
+    <div class="change-group">
+      <div class="change-group-title">修复</div>
+      <ul class="change-list">
+        <li><span class="chip chip-fix">Fix</span>修复 Gemini、Kimi 等 SPA 平台首次发送时输入框尚未渲染的问题</li>
+        <li><span class="chip chip-fix">Fix</span>修复 React / Lexical / Quill 等受控编辑器的自动输入与发送兼容性</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- v0.9 -->
+  <div class="version-block">
+    <div class="version-dot"></div>
+    <div class="version-head">
+      <span class="version-tag">v0.9</span>
+      <span class="version-date">2026-02</span>
+    </div>
+
+    <div class="change-group">
+      <div class="change-group-title">新功能</div>
+      <ul class="change-list">
+        <li><span class="chip chip-feat">Feat</span>高亮标注系统：CSS Custom Highlight API，mouseup 浮动工具条，支持「采纳/参考/拒绝/批注」四种标签</li>
+        <li><span class="chip chip-feat">Feat</span>高亮面板：侧边栏汇总所有标注，支持跨平台对比阅读</li>
+        <li><span class="chip chip-feat">Feat</span>Synthesis 融合引擎：将高亮和全量回复整理成 Prompt 发送给目标 AI</li>
+        <li><span class="chip chip-feat">Feat</span>Picker 选择器：可视化选择输入框、发送按钮、完成按钮和屏蔽元素</li>
+      </ul>
+    </div>
+
+    <div class="change-group">
+      <div class="change-group-title">修复</div>
+      <ul class="change-list">
+        <li><span class="chip chip-fix">Fix</span>修复 contentEditable 输入、发送按钮禁用 class、Quill paste 返回值等兼容问题</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- v0.8 -->
+  <div class="version-block">
+    <div class="version-dot"></div>
+    <div class="version-head">
+      <span class="version-tag">v0.8</span>
+      <span class="version-date">2025-12</span>
+    </div>
+
+    <div class="change-group">
+      <div class="change-group-title">新功能</div>
+      <ul class="change-list">
+        <li><span class="chip chip-feat">Feat</span>多实例支持：同一 AI 平台可同时打开多个独立实例</li>
+        <li><span class="chip chip-feat">Feat</span>Carousel / Grid 双布局：支持固定列数翻页或全部窗口网格展示</li>
+        <li><span class="chip chip-feat">Feat</span>聚焦模式：单个 AI 窗口全屏放大，并支持左右切换平台</li>
+        <li><span class="chip chip-feat">Feat</span>消息队列：平台生成中自动排队，完成后继续发送下一条</li>
+      </ul>
+    </div>
+
+    <div class="change-group">
+      <div class="change-group-title">优化</div>
+      <ul class="change-list">
+        <li><span class="chip chip-perf">Perf</span>窗口排序改用 CSS <code>order</code>，避免移动 iframe DOM 导致对话重载</li>
+        <li><span class="chip chip-ui">UI</span>顶部翻页按钮、触控板横向滑动、队列抽屉等核心交互成型</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- v0.7 -->
+  <div class="version-block">
+    <div class="version-dot"></div>
+    <div class="version-head">
+      <span class="version-tag">v0.7</span>
+      <span class="version-date">2025-10</span>
+    </div>
+
+    <div class="change-group">
+      <div class="change-group-title">初始发布</div>
+      <ul class="change-list">
+        <li><span class="chip chip-feat">Feat</span>多 AI 同屏聊天原型：支持 Claude、ChatGPT、Gemini、Grok、豆包、Kimi、DeepSeek 等平台</li>
+        <li><span class="chip chip-feat">Feat</span>一键同发：在多个 AI 窗口同时发送同一条消息</li>
+        <li><span class="chip chip-feat">Feat</span>Service Worker bridge 注入：监听 AI 回复、生成状态和 iframe 通信</li>
+        <li><span class="chip chip-feat">Feat</span>declarativeNetRequest 规则移除 X-Frame-Options/CSP，实现 AI 平台 iframe 嵌入</li>
+      </ul>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

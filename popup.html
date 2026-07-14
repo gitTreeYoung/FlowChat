@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 260px;
+      padding: 16px;
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+      background: #fff;
+    }
+    .title {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .desc {
+      font-size: 12px;
+      color: #86868b;
+      margin-bottom: 14px;
+      line-height: 1.5;
+    }
+    .open-btn {
+      width: 100%;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      background: #0071e3;
+      color: white;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .open-btn:hover { background: #0077ed; }
+    .open-btn:active { transform: scale(0.98); }
+    .tips {
+      margin-top: 12px;
+      font-size: 11px;
+      color: #86868b;
+      line-height: 1.6;
+    }
+    .tips strong { color: #1d1d1f; }
+  </style>
+</head>
+<body>
+  <div class="title">FlowChat</div>
+  <div class="desc" data-i18n="popup_desc">在同一屏幕中与多个 AI 同时对话，实时对比回复。</div>
+  <button class="open-btn" id="btn-open" data-i18n="btn_open_flowchat">打开 FlowChat</button>
+  <div class="tips">
+    <strong data-i18n="popup_tips_title">使用提示：</strong><br>
+    • <span data-i18n="popup_tip1">打开后请确保已登录各 AI 平台</span><br>
+    • <span data-i18n="popup_tip2">支持 ChatGPT / Claude / Gemini 等</span><br>
+    • <span data-i18n="popup_tip3">Ctrl+Enter 快捷发送消息</span>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>

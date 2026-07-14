@@ -1,0 +1,100 @@
+{
+  "manifest_version": 3,
+  "default_locale": "zh_CN",
+  "name": "__MSG_ext_name__",
+  "version": "1.2.1",
+  "description": "__MSG_ext_description__",
+  "permissions": [
+    "storage",
+    "scripting",
+    "tabs",
+    "contextMenus",
+    "sidePanel",
+    "declarativeNetRequest",
+    "webNavigation"
+  ],
+  "host_permissions": [
+    "http://localhost/*",
+    "https://claude.ai/*",
+    "https://chatgpt.com/*",
+    "https://chat.openai.com/*",
+    "https://gemini.google.com/*",
+    "https://grok.com/*",
+    "https://x.com/*",
+    "https://*.doubao.com/*",
+    "https://kimi.com/*",
+    "https://*.kimi.com/*",
+    "https://kimi.ai/*",
+    "https://kimi.moonshot.cn/*",
+    "https://chat.deepseek.com/*",
+    "https://metaso.cn/*",
+    "https://yuanbao.tencent.com/*",
+    "https://zhida.zhihu.com/*",
+    "https://chatglm.cn/*",
+    "https://agent.minimaxi.com/*",
+    "https://poe.com/*",
+    "https://copilot.microsoft.com/*",
+    "https://z.ai/*",
+    "https://yiyan.baidu.com/*"
+  ],
+  "optional_host_permissions": [
+    "*://*/*"
+  ],
+  "action": {
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "background": {
+    "service_worker": "service-worker.js"
+  },
+  "side_panel": {
+    "default_path": "sidepanel.html"
+  },
+  "declarative_net_request": {
+    "rule_resources": [
+      {
+        "id": "iframe_rules",
+        "enabled": true,
+        "path": "rules.json"
+      }
+    ]
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["bridge.js", "highlight.js"],
+      "matches": [
+        "https://claude.ai/*",
+        "https://chatgpt.com/*",
+        "https://chat.openai.com/*",
+        "https://gemini.google.com/*",
+        "https://grok.com/*",
+        "https://x.com/*",
+        "https://*.doubao.com/*",
+        "https://kimi.com/*",
+        "https://*.kimi.com/*",
+        "https://kimi.ai/*",
+        "https://kimi.moonshot.cn/*",
+        "https://chat.deepseek.com/*",
+        "https://metaso.cn/*",
+        "https://yuanbao.tencent.com/*",
+        "https://zhida.zhihu.com/*",
+        "https://chatglm.cn/*",
+        "https://agent.minimaxi.com/*",
+        "https://poe.com/*",
+        "https://copilot.microsoft.com/*",
+        "https://z.ai/*",
+        "https://yiyan.baidu.com/*"
+      ]
+    }
+  ],
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}

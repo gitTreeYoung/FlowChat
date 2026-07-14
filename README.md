@@ -10,13 +10,15 @@
 
 [![GitHub Stars](https://img.shields.io/github/stars/gitTreeYoung/FlowChat?style=flat-square)](https://github.com/gitTreeYoung/FlowChat/stargazers)
 [![Issues](https://img.shields.io/github/issues/gitTreeYoung/FlowChat?style=flat-square)](https://github.com/gitTreeYoung/FlowChat/issues)
-[![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)](LICENSE)
+[![License](https://img.shields.io/badge/license-source--available_non--commercial-orange?style=flat-square)](LICENSE)
 
 </div>
 
 ---
 
 ## 中文
+
+> 授权说明：本仓库源码可见，但不是 MIT/Apache/GPL 等开源授权。代码仅允许学习、个人使用和非商业修改，禁止未经授权的商用、再分发、上架商店或用于竞品。详见 [LICENSE](./LICENSE)。
 
 FlowChat 解决的核心问题：不同 AI 对同一问题的回答质量差异极大，但用户只能逐个打开标签页对比。FlowChat 把多个 AI 并排嵌入一个页面，用户输入一次，所有 AI 同时回复；再通过高亮标注筛选最优内容，最终融合成一份高质量答案。
 
@@ -57,6 +59,9 @@ AI 生成中时新消息自动排队，生成完毕立即发出。顶栏角标�
 **自定义选择器（Picker）**  
 当内置选择器无法识别某平台的输入框或发送按钮时，点选界面元素手动校准，配置持久保存。
 
+**发送链路诊断**
+v1.2.1 新增逐项实测和 SendTrace 日志。输入框、发送按钮可以分别做真实写入/发送验证；Gemini、Kimi 等平台出现发送异常时，可在界面和控制台定位到 tab、frame、选择器、输入写入或按钮点击中的具体失败步骤。
+
 **Claude 友好 / 编程接口**  
 开启「连接 Claude Code」后，`window.FlowChatAPI` 自动挂载，支持在 Claude Code 中向所有 AI 并发提问、等待全部回复、读取结构化结果，全程自动化。
 
@@ -86,14 +91,29 @@ agent-browser --auto-connect eval "(async function(){
 
 | 方式 | 下载 | 说明 |
 |------|------|------|
-| CRX | [FlowChat-v1.1.0.crx](https://github.com/gitTreeYoung/FlowChat/releases/download/v1.1.0/FlowChat-v1.1.0.crx) | 开启开发者模式后拖入 `chrome://extensions/` |
-| ZIP | [FlowChat-v1.1.0.zip](https://github.com/gitTreeYoung/FlowChat/releases/download/v1.1.0/FlowChat-v1.1.0.zip) | 解压后点击「加载已解压的扩展程序」选择解压目录 |
+| ZIP | [FlowChat-v1.2.1.zip](./releases/FlowChat-v1.2.1.zip) | 解压后点击「加载已解压的扩展程序」选择解压目录 |
 
 > 也可前往 [Releases 页面](https://github.com/gitTreeYoung/FlowChat/releases) 下载历史版本。
+
+### 授权与商用限制
+
+FlowChat 采用源码可见、非商业授权：
+
+- 可以：阅读源码、学习实现、个人安装使用、个人非商业修改。
+- 不可以：未经授权商用、售卖、再分发、上架插件商店、作为付费服务交付、制作或发布竞品。
+- 商业授权、企业使用或再分发许可请先联系作者。
+
+完整条款见 [LICENSE](./LICENSE)。
 
 ---
 
 ## English
+
+> License note: this repository is source-available, but it is not MIT, Apache,
+> GPL, or another open-source license. You may study the code and use/modify it
+> for personal non-commercial purposes only. Unauthorized commercial use,
+> redistribution, store publishing, and competing derivative products are
+> prohibited. See [LICENSE](./LICENSE).
 
 FlowChat solves a core problem: different AIs give wildly different answers to the same question, but users are stuck switching between tabs to compare. FlowChat embeds multiple AIs side-by-side in one page — type once, all AIs reply simultaneously. Then highlight the best parts and merge them into one high-quality answer.
 
@@ -134,6 +154,9 @@ Visually select and permanently hide distracting UI elements (ads, navbars, etc.
 **Custom Selector (Picker)**  
 When built-in selectors fail to find a platform's input or send button (common after AI site redesigns), click to manually calibrate. Settings are saved per platform.
 
+**Send-Chain Diagnostics**
+v1.2.1 adds live item testing and SendTrace logs. Input and send selectors can be tested with real write/send attempts. For Gemini, Kimi, and other fragile web UIs, FlowChat reports the exact failing step: tab, frame, selector loading, input matching, editor writing, or button clicking.
+
 **Claude-Friendly API**  
 Enable "Connect Claude Code" to expose `window.FlowChatAPI`. Use it in Claude Code to query all AIs in parallel, wait for all responses, and get structured results — fully automated.
 
@@ -163,10 +186,23 @@ If you can't access the Chrome Web Store:
 
 | Method | Download | Instructions |
 |--------|----------|--------------|
-| CRX | [FlowChat-v1.1.0.crx](https://github.com/gitTreeYoung/FlowChat/releases/download/v1.1.0/FlowChat-v1.1.0.crx) | Enable Developer Mode, then drag the file into `chrome://extensions/` |
-| ZIP | [FlowChat-v1.1.0.zip](https://github.com/gitTreeYoung/FlowChat/releases/download/v1.1.0/FlowChat-v1.1.0.zip) | Unzip, then click "Load unpacked" and select the folder |
+| ZIP | [FlowChat-v1.2.1.zip](./releases/FlowChat-v1.2.1.zip) | Unzip, then click "Load unpacked" and select the folder |
 
 > See [Releases](https://github.com/gitTreeYoung/FlowChat/releases) for all versions.
+
+### License And Commercial Restrictions
+
+FlowChat is source-available under a non-commercial license:
+
+- Allowed: reading the source, studying the implementation, personal use, and
+  personal non-commercial modifications.
+- Not allowed without permission: commercial use, selling, redistribution,
+  publishing to extension stores, paid service delivery, or competing derivative
+  products.
+- Contact the author for commercial licensing, enterprise use, or redistribution
+  permission.
+
+See [LICENSE](./LICENSE) for the full terms.
 
 ---
 
