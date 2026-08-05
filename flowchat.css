@@ -212,6 +212,59 @@ body.fc-side-panel .logo-group { display:none; }
 /* send-wrap: 相对定位容器，用于放置排队 badge */
 .send-wrap { position:relative; flex-shrink:0; }
 
+/* 文件上传按钮 */
+.upload-btn {
+  width:36px; height:36px; border-radius:var(--radius);
+  border:1px solid var(--border-md); background:var(--bg); color:var(--txt2);
+  cursor:pointer; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+  transition:background .15s, border-color .15s, color .15s;
+  box-shadow:var(--shadow-xs);
+}
+.upload-btn:hover { background:var(--bg2); border-color:var(--accent); color:var(--accent); }
+
+/* 文件缩略图容器 */
+.file-thumbs {
+  position:absolute; left:0; right:0; top:100%;
+  display:flex; flex-wrap:wrap; gap:6px;
+  padding:6px 0 0;
+  z-index:250;
+  pointer-events:none;
+}
+.file-thumbs:empty { display:none; }
+
+.file-thumb {
+  position:relative;
+  width:56px; height:56px;
+  border-radius:8px; overflow:hidden;
+  border:1px solid var(--border-md);
+  background:var(--bg);
+  box-shadow:var(--shadow-xs);
+  pointer-events:auto;
+  display:flex; align-items:center; justify-content:center;
+}
+.file-thumb img { width:100%; height:100%; object-fit:cover; }
+.file-thumb-icon {
+  font-size:10px; color:var(--txt2); text-align:center;
+  padding:4px; word-break:break-all; line-height:1.2;
+}
+.file-thumb-remove {
+  position:absolute; top:2px; right:2px;
+  width:16px; height:16px; border-radius:50%;
+  background:rgba(0,0,0,.65); color:#fff;
+  border:none; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  font-size:11px; line-height:1;
+  padding:0;
+}
+.file-thumb-remove:hover { background:rgba(0,0,0,.85); }
+.file-thumb-name {
+  position:absolute; bottom:0; left:0; right:0;
+  background:rgba(0,0,0,.6); color:#fff;
+  font-size:9px; padding:1px 3px;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+
 .send-btn {
   width:36px; height:36px; border-radius:var(--radius);
   border:1px solid transparent;

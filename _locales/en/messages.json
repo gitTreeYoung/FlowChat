@@ -289,5 +289,7 @@
   "custom_platform_cancel": { "message": "Cancel" },
   "custom_platform_url_invalid": { "message": "Please enter a valid https:// URL" },
   "custom_platform_picker_prompt": { "message": "Please select the input box and send button" },
-  "custom_platform_permission_denied": { "message": "Site access permission is required to add a custom channel" }
+  "custom_platform_permission_denied": { "message": "Site access permission is required to add a custom channel" },
+  "toast_file_too_large": { "message": "File too large, skipped: $name$", "placeholders": { "name": { "content": "$1", "example": "big.pdf" } } },
+  "upload_tooltip": { "message": "Upload file" }
 }
