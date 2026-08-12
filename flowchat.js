@@ -242,6 +242,7 @@ let activePlatforms = [];
 let bridgeStatus    = {};
 let pickerState     = {};
 let carouselOffset  = 0;
+let pendingFiles = []; // 待上传文件列表: { file, dataUrl, preview, isImage }
 let pendingGroupUrls = {};   // { [instanceKey]: url } — 恢复会话组时的目标 URL
 let pendingGroupHighlights = {}; // { [instanceKey]: highlight[] } — 恢复会话组后等待 iframe 重绘的高亮
 const transientPlatforms = new Set(); // 当前页面临时窗口，例如总结生成结果，不写入布局/持久配置
@@ -2261,13 +2262,411 @@ function updateDot(key, status) {
 }
 
 // ============================================================
+// 待上传文件状态管理
+// ============================================================
+
+function isImageFile(file) {
+  return file.type.startsWith('image/');
+}
+
+function getFileIconLabel(file) {
+  const ext = (file.name.split('.').pop() || '').toLowerCase();
+  if (['pdf'].includes(ext)) return 'PDF';
+  if (['doc', 'docx'].includes(ext)) return 'DOC';
+  if (['xls', 'xlsx', 'csv'].includes(ext)) return 'XLS';
+  if (['ppt', 'pptx'].includes(ext)) return 'PPT';
+  if (['txt', 'md'].includes(ext)) return 'TXT';
+  if (['zip', 'rar', '7z', 'gz'].includes(ext)) return 'ZIP';
+  if (['js', 'ts', 'py', 'java', 'c', 'cpp', 'go', 'rs', 'rb'].includes(ext)) return ext.toUpperCase().slice(0, 3);
+  return ext.slice(0, 3).toUpperCase() || 'FILE';
+}
+
+function readFileAsDataURL(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+async function addPendingFile(file) {
+  if (!file) return;
+  // 限制单个文件 20MB
+  if (file.size > 20 * 1024 * 1024) {
+    showToast(msg('toast_file_too_large', [file.name]));
+    return;
+  }
+  const dataUrl = isImageFile(file) ? await readFileAsDataURL(file) : null;
+  const entry = {
+    file,
+    dataUrl,
+    preview: dataUrl || getFileIconLabel(file),
+    isImage: !!dataUrl,
+  };
+  pendingFiles.push(entry);
+  renderFileThumbs();
+}
+
+function renderFileThumbs() {
+  const container = document.getElementById('file-thumbs');
+  if (!container) return;
+  container.innerHTML = pendingFiles.map((entry, idx) => {
+    const inner = entry.isImage
+      ? `<img src="${entry.dataUrl}" alt="">`
+      : `<div class="file-thumb-icon">${getFileIconLabel(entry.file)}</div>`;
+    const nameBar = `<div class="file-thumb-name">${escHtml(entry.file.name)}</div>`;
+    return `<div class="file-thumb" data-idx="${idx}">
+      ${inner}
+      ${nameBar}
+      <button class="file-thumb-remove" data-remove-idx="${idx}" title="${msg('btn_cancel')}">×</button>
+    </div>`;
+  }).join('');
+  container.querySelectorAll('[data-remove-idx]').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const idx = parseInt(btn.dataset.removeIdx, 10);
+      removePendingFile(idx);
+    });
+  });
+}
+
+function removePendingFile(index) {
+  if (index < 0 || index >= pendingFiles.length) return;
+  pendingFiles.splice(index, 1);
+  renderFileThumbs();
+}
+
+// ============================================================
+// 文件上传链路
+// ============================================================
+
+/** 将文件上传到所有活跃平台（并行，单平台失败不抛出） */
+async function uploadFilesToAllPlatforms(fileEntries) {
+  const tasks = activePlatforms.map(key => uploadFilesToPlatform(key, fileEntries));
+  await Promise.allSettled(tasks);
+}
+
+/** 向单个平台上传多个文件 */
+async function uploadFilesToPlatform(key, fileEntries) {
+  const basePlatform = getBasePlatform(key);
+  try {
+    const ctx = await getFlowChatTabContext(key);
+    if (!ctx.tabId) return;
+    const frame = ctx.frames.find(f => f.frameId !== 0 && getPlatformForUrl(f.url) === basePlatform);
+    if (!frame) return;
+
+    // 将文件转为 base64 传输（跨 world 序列化可靠）
+    const attachments = await Promise.all(fileEntries.map(async entry => {
+      const base64 = await fileToBase64(entry.file);
+      return {
+        data: base64,
+        name: entry.file.name,
+        mime: entry.file.type || 'application/octet-stream',
+        isImage: entry.isImage,
+      };
+    }));
+
+    await chrome.scripting.executeScript({
+      target: { tabId: ctx.tabId, frameIds: [frame.frameId] },
+      world: 'MAIN',
+      func: uploadFilesInPage,
+      args: [attachments, basePlatform],
+    });
+  } catch (e) {
+    console.warn(`[FlowChat] 文件上传到 ${key} 失败:`, e.message);
+  }
+}
+
+/** 文件转 base64（不含 data: 前缀） */
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result;
+      resolve(result.substring(result.indexOf(',') + 1));
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+/**
+ * 注入到 iframe MAIN world 执行（自包含，不引用外部作用域）：
+ * - DeepSeek：拦截 HTMLInputElement.prototype.click/showPicker，通过 paste 逐个上传，finally 中延迟 2000ms 恢复
+ * - 其他平台：优先 input[type=file] 赋值；失败且为图片时降级 paste；仍失败降级 drop
+ */
+async function uploadFilesInPage(attachments, provider) {
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+  function base64ToFile(att) {
+    try {
+      const binary = atob(att.data);
+      const len = binary.length;
+      const bytes = new Uint8Array(len);
+      for (let i = 0; i < len; i++) bytes[i] = binary.charCodeAt(i);
+      const blob = new Blob([bytes], { type: att.mime || 'application/octet-stream' });
+      return new File([blob], att.name || 'file', { type: att.mime || 'application/octet-stream' });
+    } catch (e) { return null; }
+  }
+
+  function buildDataTransfer(files) {
+    const dt = new DataTransfer();
+    for (const f of files) { try { dt.items.add(f); } catch {} }
+    return dt.files.length ? dt : null;
+  }
+
+  function findFileInput(acceptDoc) {
+    if (provider === 'yuanbao') {
+      const editor = document.querySelector('.ql-editor[contenteditable="true"]') ||
+                     document.querySelector('.chat-input-editor .ql-editor') ||
+                     document.querySelector('[role="textbox"][contenteditable="true"]');
+      const scopes = [];
+      if (editor) {
+        const searchBar = editor.closest('#search-bar');
+        const qlContainer = editor.closest('.ql-container');
+        const editorRoot = editor.closest('.chat-input-editor');
+        if (searchBar) scopes.push(searchBar);
+        if (qlContainer) scopes.push(qlContainer);
+        if (editorRoot) scopes.push(editorRoot);
+        scopes.push(editor.parentElement || editor);
+      }
+      scopes.push(document);
+      for (const scope of scopes) {
+        if (!scope || !scope.querySelectorAll) continue;
+        const inputs = scope.querySelectorAll('input[type="file"]');
+        for (const el of inputs) {
+          if (el.disabled) continue;
+          return el;
+        }
+      }
+      return null;
+    }
+    const inputs = document.querySelectorAll('input[type="file"]');
+    // 第一轮：按文件类型精确匹配，避免文档塞进图片专用 input（accept 仅含图片扩展名）
+    for (const el of inputs) {
+      if (el.disabled) continue;
+      const accept = String(el.getAttribute('accept') || '').toLowerCase();
+      if (acceptDoc) {
+        // 上传文档：仅匹配 accept 为空、*/* 或包含文档扩展名/application 类型的 input
+        if (!accept || accept.includes('*/*') || accept.includes('application/') ||
+            /\.(pdf|docx?|txt|xlsx?|pptx?|csv|md)/.test(accept)) return el;
+      } else {
+        // 上传图片：匹配 accept 为空、含 image 或 */* 的 input
+        if (!accept || accept.includes('image') || accept.includes('*/*')) return el;
+      }
+    }
+    // 第二轮：宽松兜底。上传文档时排除仅接受图片的 input，避免假成功阻断降级
+    for (const el of inputs) {
+      if (el.disabled) continue;
+      const accept = String(el.getAttribute('accept') || '').toLowerCase();
+      if (acceptDoc && accept && !accept.includes('*/*') && !accept.includes('application/') &&
+          !/\.(pdf|docx?|txt|xlsx?|pptx?|csv|md)/.test(accept)) continue;
+      return el;
+    }
+    return null;
+  }
+
+  function assignInputFiles(input, files) {
+    const dt = buildDataTransfer(files);
+    if (!dt) return false;
+    try { input.files = dt.files; } catch {
+      try { Object.defineProperty(input, 'files', { value: dt.files, configurable: true }); } catch { return false; }
+    }
+    input.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
+    input.dispatchEvent(new Event('change', { bubbles: true, composed: true }));
+    return true;
+  }
+
+  function findPasteTarget() {
+    const sels = [
+      '#prompt-textarea.ProseMirror[contenteditable="true"]',
+      'div#prompt-textarea[contenteditable="true"]',
+      '.ProseMirror[contenteditable="true"]',
+      '[role="textbox"][contenteditable="true"]',
+      '[contenteditable="true"]',
+      'textarea',
+    ];
+    for (const s of sels) {
+      const el = document.querySelector(s);
+      if (el) {
+        const r = el.getBoundingClientRect();
+        if (r.width > 20 && r.height > 12) return el;
+      }
+    }
+    return null;
+  }
+
+  function dispatchPaste(target, dataTransfer) {
+    try {
+      const ev = new ClipboardEvent('paste', { bubbles: true, cancelable: true, clipboardData: dataTransfer });
+      target.dispatchEvent(ev);
+    } catch {
+      try {
+        const ev2 = new ClipboardEvent('paste', { bubbles: true, cancelable: true });
+        Object.defineProperty(ev2, 'clipboardData', { value: dataTransfer, enumerable: true, configurable: true });
+        target.dispatchEvent(ev2);
+      } catch {}
+    }
+    target.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+
+  // 构建 File 对象
+  const files = attachments.map(base64ToFile).filter(Boolean);
+  if (!files.length) return { ok: false, error: 'build_files_failed' };
+
+  const hasDoc = files.some(f => !f.type.startsWith('image/'));
+
+  // DeepSeek：拦截原型 click/showPicker，通过 paste 逐个上传
+  if (provider === 'deepseek') {
+    const target = document.querySelector('textarea[placeholder*="DeepSeek"], textarea[placeholder*="发送消息"]') || document.querySelector('textarea');
+    if (target && target.tagName === 'TEXTAREA') {
+      target.focus();
+      const origClick = HTMLInputElement.prototype.click;
+      const origShowPicker = HTMLInputElement.prototype.showPicker;
+      HTMLInputElement.prototype.click = function () {
+        if (this.type === 'file') return;
+        return origClick.apply(this, arguments);
+      };
+      if (origShowPicker) {
+        HTMLInputElement.prototype.showPicker = function () {
+          if (this.type === 'file') return;
+          return origShowPicker.apply(this, arguments);
+        };
+      }
+      let allPasted = true;
+      try {
+        for (let i = 0; i < files.length; i++) {
+          const dt = new DataTransfer();
+          try { dt.items.add(files[i]); } catch { allPasted = false; continue; }
+          if (!dt.files.length) { allPasted = false; continue; }
+          try {
+            const ev = new ClipboardEvent('paste', { bubbles: true, cancelable: true, clipboardData: dt });
+            target.dispatchEvent(ev);
+            target.dispatchEvent(new Event('input', { bubbles: true }));
+          } catch {
+            try {
+              const ev2 = new ClipboardEvent('paste', { bubbles: true, cancelable: true });
+              Object.defineProperty(ev2, 'clipboardData', { value: dt, enumerable: true, configurable: true });
+              target.dispatchEvent(ev2);
+              target.dispatchEvent(new Event('input', { bubbles: true }));
+            } catch { allPasted = false; }
+          }
+          if (i < files.length - 1) await sleep(250);
+        }
+      } finally {
+        // 延迟恢复：等待 DeepSeek 异步 paste 处理器完成，finally 确保异常时也能恢复
+        setTimeout(() => {
+          HTMLInputElement.prototype.click = origClick;
+          if (origShowPicker) HTMLInputElement.prototype.showPicker = origShowPicker;
+        }, 2000);
+      }
+      console.log(`[FlowChat Upload] ${provider}: 文件已通过 paste 事件上传 (${files.length} 个)`);
+      return { ok: allPasted, method: 'paste' };
+    }
+    console.warn(`[FlowChat Upload] ${provider}: 未找到 textarea`);
+    return { ok: false, error: 'no_textarea' };
+  }
+
+  // 元宝：优先 input[type=file]，失败后 drop 到 Quill 编辑器
+  if (provider === 'yuanbao') {
+    let input = findFileInput(hasDoc);
+    if (input) {
+      if (assignInputFiles(input, files)) {
+        console.log(`[FlowChat Upload] ${provider}: 文件已通过 input[type=file] 上传 (${files.length} 个)`);
+        return { ok: true, method: 'fileInput' };
+      }
+    }
+    const editor = document.querySelector('.ql-editor[contenteditable="true"]') ||
+                   document.querySelector('.chat-input-editor .ql-editor') ||
+                   document.querySelector('[role="textbox"][contenteditable="true"]') ||
+                   findPasteTarget();
+    if (editor) {
+      const dt = buildDataTransfer(files);
+      if (dt) {
+        for (const type of ['dragenter', 'dragover', 'drop']) {
+          try {
+            const ev = new DragEvent(type, { bubbles: true, cancelable: true, dataTransfer: dt });
+            editor.dispatchEvent(ev);
+          } catch {
+            const ev2 = new Event(type, { bubbles: true, cancelable: true });
+            try { Object.defineProperty(ev2, 'dataTransfer', { value: dt, enumerable: true, configurable: true }); } catch {}
+            editor.dispatchEvent(ev2);
+          }
+        }
+        editor.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
+        console.log(`[FlowChat Upload] ${provider}: 文件已通过 drop 事件上传 (${files.length} 个)`);
+        return { ok: true, method: 'drop' };
+      }
+    }
+    console.warn(`[FlowChat Upload] ${provider}: 未找到文件上传入口`);
+    return { ok: false, error: 'no_upload_entry' };
+  }
+
+  // 策略1：查找 input[type=file]
+  let input = findFileInput(hasDoc);
+  if (input) {
+    if (assignInputFiles(input, files)) {
+      console.log(`[FlowChat Upload] ${provider}: 文件已通过 input[type=file] 上传 (${files.length} 个)`);
+      return { ok: true, method: 'fileInput' };
+    }
+  }
+
+  // 策略2：paste 降级（图片和文档均尝试，部分平台 paste 处理器接受任意文件）
+  {
+    const target = findPasteTarget();
+    if (target) {
+      const dt = buildDataTransfer(files);
+      if (dt) {
+        dispatchPaste(target, dt);
+        console.log(`[FlowChat Upload] ${provider}: 文件已通过 paste 事件上传 (${files.length} 个)`);
+        return { ok: true, method: 'paste' };
+      }
+    }
+  }
+
+  // 策略3：drop 事件降级
+  const dropTarget = findPasteTarget();
+  if (dropTarget) {
+    const dt = buildDataTransfer(files);
+    if (dt) {
+      for (const type of ['dragenter', 'dragover', 'drop']) {
+        try {
+          const ev = new DragEvent(type, { bubbles: true, cancelable: true, dataTransfer: dt });
+          dropTarget.dispatchEvent(ev);
+        } catch {
+          const ev2 = new Event(type, { bubbles: true, cancelable: true });
+          try { Object.defineProperty(ev2, 'dataTransfer', { value: dt, enumerable: true, configurable: true }); } catch {}
+          dropTarget.dispatchEvent(ev2);
+        }
+      }
+      console.log(`[FlowChat Upload] ${provider}: 文件已通过 drop 事件上传 (${files.length} 个)`);
+      return { ok: true, method: 'drop' };
+    }
+  }
+
+  console.warn(`[FlowChat Upload] ${provider}: 未找到文件上传入口`);
+  return { ok: false, error: 'no_upload_entry' };
+}
+
+// ============================================================
 // 消息发送（队列版）
 // ============================================================
 
 async function sendMessage() {
   const inputEl = document.getElementById('message-input');
   const message = inputEl.value.trim();
-  if (!message) return;
+  if (!message && !pendingFiles.length) return;
+
+  // 先上传文件到各平台（异步并行），再发送文本
+  if (pendingFiles.length) {
+    const fileEntries = [...pendingFiles];
+    pendingFiles.length = 0;
+    renderFileThumbs();
+    await uploadFilesToAllPlatforms(fileEntries);
+    // 等待平台处理文件：change 事件触发后前端需上传到服务器并渲染预览，发送按钮才会启用
+    await new Promise(r => setTimeout(r, 1500));
+  }
 
   inputEl.value = '';
   collapseInput();
@@ -6051,6 +6450,45 @@ function bindEvents() {
 
   // 发送
   document.getElementById('btn-send').addEventListener('click', sendMessage);
+  // ── 文件上传 ──
+  const btnUpload = document.getElementById('btn-upload');
+  const fileInput = document.getElementById('file-input');
+  if (btnUpload && fileInput) {
+    btnUpload.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', async () => {
+      for (const f of fileInput.files) {
+        await addPendingFile(f);
+      }
+      fileInput.value = '';
+    });
+  }
+  // 粘贴文件（支持同时粘贴多个文件）
+  inp.addEventListener('paste', async e => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+    const files = [];
+    for (const item of items) {
+      if (item.kind === 'file') {
+        try {
+          const f = item.getAsFile();
+          if (f) files.push(f);
+        } catch {}
+      }
+    }
+    if (!files.length) return;
+    e.preventDefault();
+    await Promise.all(files.map(f => addPendingFile(f)));
+  });
+  // 拖拽文件
+  inp.addEventListener('dragover', e => { e.preventDefault(); });
+  inp.addEventListener('drop', async e => {
+    const files = e.dataTransfer?.files;
+    if (!files || !files.length) return;
+    e.preventDefault();
+    for (const f of files) {
+      await addPendingFile(f);
+    }
+  });
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'hidden') {
       upsertAutoSavedCurrentGroup('visibility-hidden').catch(() => {});

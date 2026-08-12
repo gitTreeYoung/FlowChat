@@ -289,5 +289,7 @@
   "custom_platform_cancel": { "message": "取消" },
   "custom_platform_url_invalid": { "message": "请输入有效的 https:// URL" },
   "custom_platform_picker_prompt": { "message": "请选择该平台的输入框和发送按钮" },
-  "custom_platform_permission_denied": { "message": "需要授予网站访问权限才能添加自定义渠道" }
+  "custom_platform_permission_denied": { "message": "需要授予网站访问权限才能添加自定义渠道" },
+  "toast_file_too_large": { "message": "文件过大,已忽略: $name$", "placeholders": { "name": { "content": "$1", "example": "big.pdf" } } },
+  "upload_tooltip": { "message": "上传文件" }
 }
