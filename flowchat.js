@@ -2664,6 +2664,8 @@ async function sendMessage() {
     pendingFiles.length = 0;
     renderFileThumbs();
     await uploadFilesToAllPlatforms(fileEntries);
+    // 等待平台处理文件：change 事件触发后前端需上传到服务器并渲染预览，发送按钮才会启用
+    await new Promise(r => setTimeout(r, 1500));
   }
 
   inputEl.value = '';
